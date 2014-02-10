@@ -1,0 +1,30 @@
+# Title of the simulation
+title 2D_Channel
+
+# Working directory "../run/" or "./"
+wdir ./
+
+# Length of domain in x-direction
+lx 2.0
+
+# Length of domain in y-direction
+ly 1.0
+
+# Number of interior lattice points in x-direction
+Nx 10
+
+# Number of interior lattice points in y-direction
+Ny 20
+
+# Density of fluid
+rho 1
+
+# Velocity components (ux uy)
+vel 0.1 0.0
+
+# Omega (Viscosity parameter)
+omega 1.25
+
+# Number of iterations
+iter 100000
+

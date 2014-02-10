@@ -4,12 +4,6 @@ title 2D_Channel
 # Working directory "../run/" or "./"
 wdir ./
 
-# Length of domain in x-direction
-lx 2.0
-
-# Length of domain in y-direction
-ly 1.0
-
 # Number of interior lattice points in x-direction
 Nx 10
 

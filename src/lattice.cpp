@@ -12,22 +12,8 @@ void lbmLattice::createLattice(input* inputData){
 	// Number of interior lattice points y-dir
 	int Ny = inputData->getNy();
 
-	// Length x-dir
-	double Lx = inputData->getLx();
-
-	// Length
-	double Ly = inputData->getLy();
-
 	// Create the lattice points including ghost points
 	latpoint = new latticePoint[(Nx+2)*(Ny+2)]();
-
-	// Set (x,y) co-ordinates of lattice points
-	for(int j=0;j<Ny+2;j++){
-		for(int i=0;i<Nx+2;i++){
-			latpoint[(Nx+2)*j + i].x = Lx/Nx*i;
-			latpoint[(Nx+2)*j + i].y = Ly/Ny*j;
-		}
-	}
 
 	// Initialize the lattice variables
 	

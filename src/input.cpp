@@ -8,8 +8,6 @@ input::input(){
 
     // Default values for the input parameters
     title = "LBM";
-    lx    = 1.0;
-    ly    = 1.0;
     Nx    = 10;
     Ny    = 10;
     den   = 1.0;
@@ -53,10 +51,6 @@ void input::readInputFile(){
                 iss >> title;
             else if(dummyString == "wdir")
                 iss >> wdir;
-            else if(dummyString == "lx")
-                iss >> lx;
-            else if(dummyString == "ly")
-                iss >> ly;
             else if(dummyString == "Nx")
                 iss >> Nx;
             else if(dummyString == "Ny")
@@ -84,8 +78,6 @@ void input::readInputFile(){
     //cout << fixed;
     cout << "Title of the simulation                 : " << title << endl;
     cout << "Working Directory                       : " << wdir << endl;
-    cout << "Length of physical domain               : " << lx << endl;
-    cout << "Width of physical domain                : " << ly << endl;
     cout << "No. of interior lattice points in x-dir : " << Nx << endl;
     cout << "No. of interior lattice points in y-dir : " << Ny << endl;
     cout << "Density of fluid                        : " << den << endl;

@@ -12,8 +12,6 @@ class input
         /// PRIVATE VARIABLES
         string  title;      // title of the document
 	string	wdir;	    // working directory
-	double  lx;	    // length of domain in x-dir
-	double  ly;	    // length of domain in x-dir
 	int	Nx;	    // number of interior lattice points in x-dir
 	int	Ny;	    // number of interior lattice points in y-dir
 	double  den;        // density of fluid
@@ -34,8 +32,6 @@ class input
         /// GETTERS ///  
         string          getTitle()      {return title;};
         string          getWdir()       {return wdir;};
-        double          getLx()         {return lx;};
-        double          getLy()         {return ly;};
 	int		getNx()		{return Nx;};
 	int		getNy()		{return Ny;};
         double          getDen()        {return den;};

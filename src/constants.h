@@ -14,6 +14,8 @@
 #include <cstring>
 #include <limits>
 #include <time.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
 using namespace std;
 

@@ -31,6 +31,8 @@ void lbmLattice::createLattice(input* inputData){
 
 			latpoint[(Nx+2)*j + i].rho = Rho;
 
+			latpoint[(Nx+2)*j + i].P = 1;
+
 			latpoint[(Nx+2)*j + i].u[0] = Ux;
 			latpoint[(Nx+2)*j + i].u[1] = Uy;
 

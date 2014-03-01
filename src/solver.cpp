@@ -18,6 +18,9 @@ void lbmSolver::solveFlow(lbmLattice* argLattice, input* argInput){
 	/// Number of interior lattice points y-dir
 	int Ny = inputData->getNy();	
 
+	/// Generate porous structure based on given porosity function
+	//PorosityFunction(Nx, Ny);
+
 	/// Loop through number of iterations
 	for(int i=0;i<inputData->getNIter();i++){
 		
@@ -35,6 +38,9 @@ void lbmSolver::solveFlow(lbmLattice* argLattice, input* argInput){
 
 		/// Apply Boundary Condition
 		BoundaryCondition(Nx, Ny);
+
+		/// Apply Porous Boundary condition
+		//ApplyPorousBC(Nx, Ny);
 
 		/// Streaming operator
 		Streaming(Nx, Ny);
@@ -68,6 +74,8 @@ double lbmSolver::ComputeMacro(const int Nx, const int Ny){
 	// Loop through all interior lattice points
 	for(int j=1;j<Ny+1;j++){
 		for(int i=1;i<Nx+1;i++){
+
+		   if(lattice->latpoint[(Nx+2)*j + i].P == 1){
 			std::memcpy(f, lattice->latpoint[(Nx+2)*j + i].f, 9*sizeof(double));
 
 			// Calculate density from the distribution
@@ -82,6 +90,11 @@ double lbmSolver::ComputeMacro(const int Nx, const int Ny){
 
 			if(lattice->latpoint[(Nx+2)*j + i].u[0]>u_max)
 				u_max = lattice->latpoint[(Nx+2)*j + i].u[0];
+		   }else{
+			lattice->latpoint[(Nx+2)*j + i].rho = 0.0;
+			lattice->latpoint[(Nx+2)*j + i].u[0] = 0.0;
+			lattice->latpoint[(Nx+2)*j + i].u[1] = 0.0;
+		   }
 		}
 	}
 
@@ -99,6 +112,9 @@ void lbmSolver::ComputeEqDistribution(const int Nx, const int Ny){
 	// Loop through all interior lattice points
 	for(int j=1;j<Ny+1;j++){
 		for(int i=1;i<Nx+1;i++){
+
+		   if(lattice->latpoint[(Nx+2)*j + i].P == 1){
+
 			Rho = lattice->latpoint[(Nx+2)*j + i].rho;
 			Ux = lattice->latpoint[(Nx+2)*j + i].u[0];
 			Uy = lattice->latpoint[(Nx+2)*j + i].u[1];
@@ -115,6 +131,7 @@ void lbmSolver::ComputeEqDistribution(const int Nx, const int Ny){
 			lattice->latpoint[(Nx+2)*j + i].f_eq[6] = Rho*w_c*( 1.0 + ((-Ux+Uy)/cs_sqr) - U_sqr + ((-Ux+Uy)*(-Ux+Uy)/(2*cs_sqr*cs_sqr)));
 			lattice->latpoint[(Nx+2)*j + i].f_eq[7] = Rho*w_c*( 1.0 - ((Ux+Uy)/cs_sqr) - U_sqr + ((Ux+Uy)*(Ux+Uy)/(2*cs_sqr*cs_sqr)));
 			lattice->latpoint[(Nx+2)*j + i].f_eq[8] = Rho*w_c*( 1.0 + ((Ux-Uy)/cs_sqr) - U_sqr + ((Ux-Uy)*(Ux-Uy)/(2*cs_sqr*cs_sqr)));
+		   }
 		}
 	}
 
@@ -133,10 +150,15 @@ void lbmSolver::Collision(const int Nx, const int Ny){
 	// Loop through all interior lattice points
 	for(int j=1;j<Ny+1;j++){
 		for(int i=1;i<Nx+1;i++){
+
+		   if(lattice->latpoint[(Nx+2)*j + i].P == 1){
+
 			std::memcpy(f, lattice->latpoint[(Nx+2)*j + i].f, 9*sizeof(double));
 			std::memcpy(f_eq, lattice->latpoint[(Nx+2)*j + i].f_eq, 9*sizeof(double));	
 			for(int k=0;k<9;k++)
 				lattice->latpoint[(Nx+2)*j + i].f[k] += omega*(f_eq[k] - f[k]);
+		   }
+
 		}
 	}
 	
@@ -153,12 +175,13 @@ void lbmSolver::SourceTerm(const int Nx, const int Ny){
 	double omega = inputData->getOmega();
 	double H = inputData->getNy();
 	double Rho_0 = inputData->getDen();
+	double Ux = inputData->getUx();
 	
 	// Viscosity of fluid
 	double mu = Rho_0*(1.0/omega - 0.5)*cs_sqr;
 	
 	// Maximum target velocity
-	double u_m = 0.1;
+	double u_m = Ux;
 
 	// Pressure gradient
 	double G = 8*mu*u_m/(H*H);
@@ -167,6 +190,9 @@ void lbmSolver::SourceTerm(const int Nx, const int Ny){
 	// Loop through all interior lattice points
 	for(int j=1;j<Ny+1;j++){
 		for(int i=1;i<Nx+1;i++){
+
+		   if(lattice->latpoint[(Nx+2)*j + i].P == 1){
+
 			lattice->latpoint[(Nx+2)*j + i].f[1] += G/6;
 			lattice->latpoint[(Nx+2)*j + i].f[5] += G/6;
 			lattice->latpoint[(Nx+2)*j + i].f[8] += G/6;
@@ -174,6 +200,8 @@ void lbmSolver::SourceTerm(const int Nx, const int Ny){
 			lattice->latpoint[(Nx+2)*j + i].f[3] -= G/6;
 			lattice->latpoint[(Nx+2)*j + i].f[6] -= G/6;
 			lattice->latpoint[(Nx+2)*j + i].f[7] -= G/6;
+		   }
+
 		}
 	}
 return;
@@ -294,26 +322,109 @@ return;
 }
 
 /*!
+ * \brief Generate the structure for solid and fluid nodes based on porosity function
+ */
+void lbmSolver::PorosityFunction(const int Nx, const int Ny){
+
+	double im = Nx/2;
+	double jm = Ny/2;
+	double r;
+
+	for(int i=1;i<Nx+1;i++){
+		for(int j=1;j<Ny+1;j++){
+        		r = ((i-im)/Nx)*((i-im)/Nx) + ((j-jm)/Ny)*((j-jm)/Ny);
+       			if(r<0.05)	
+				lattice->latpoint[(Nx+2)*j + i].P = 0;
+		}
+	}
+
+	/// Random porosity function
+/*	for(int i=1;i<Nx+1;i++){
+		for(int j=1;j<Ny+1;j++){
+			r = (double) rand() / (RAND_MAX);
+			cout<<r<<endl;
+       			if(i>im-im/2 && i<im+im/2)	
+				if(r>0.9) lattice->latpoint[(Nx+2)*j + i].P = 0;
+		}
+	}*/
+return;
+}
+
+/*!
+ * \brief Applying porous boundary condition
+ */
+void lbmSolver::ApplyPorousBC(const int Nx, const int Ny){
+
+for(int i=1;i<Nx+1;i++){
+	for(int j=1;j<Ny+1;j++){
+        
+		if(lattice->latpoint[(Nx+2)*j + i].P == 0){
+			if(lattice->latpoint[(Nx+2)*j + i + 1].P == 1)
+       				lattice->latpoint[(Nx+2)*j + i].f[1] = lattice->latpoint[(Nx+2)*j + i + 1].f[3];
+			if(lattice->latpoint[(Nx+2)*(j + 1) + i].P == 1)
+       				lattice->latpoint[(Nx+2)*j + i].f[2] = lattice->latpoint[(Nx+2)*(j + 1) + i].f[4];
+			if(lattice->latpoint[(Nx+2)*j + i - 1].P == 1)
+       				lattice->latpoint[(Nx+2)*j + i].f[3] = lattice->latpoint[(Nx+2)*j + i - 1].f[1];
+			if(lattice->latpoint[(Nx+2)*(j - 1) + i].P == 1)
+       				lattice->latpoint[(Nx+2)*j + i].f[4] = lattice->latpoint[(Nx+2)*(j - 1) + i].f[2];
+			if(lattice->latpoint[(Nx+2)*(j + 1) + i + 1].P == 1)
+       				lattice->latpoint[(Nx+2)*j + i].f[5] = lattice->latpoint[(Nx+2)*(j + 1) + i + 1].f[7];
+			if(lattice->latpoint[(Nx+2)*(j + 1) + i - 1].P == 1)
+       				lattice->latpoint[(Nx+2)*j + i].f[6] = lattice->latpoint[(Nx+2)*(j + 1) + i - 1].f[8];
+			if(lattice->latpoint[(Nx+2)*(j - 1) + i - 1].P == 1)
+       				lattice->latpoint[(Nx+2)*j + i].f[7] = lattice->latpoint[(Nx+2)*(j - 1) + i - 1].f[5];
+			if(lattice->latpoint[(Nx+2)*(j - 1) + i + 1].P == 1)
+       				lattice->latpoint[(Nx+2)*j + i].f[8] = lattice->latpoint[(Nx+2)*(j - 1) + i + 1].f[6];
+		}
+	}
+}
+
+return;
+}
+
+/*!
  * \brief print density and velocity at lattice points
  */
 void lbmSolver::ExtractVel(const int Nx, const int Ny){
 
-	ofstream file, file_r;
+	string dir = inputData->getTitle();
+	string dummy;
 
-	file_r.open("Ux.dat",ios::out);
-	file.open("rho.dat",ios::out);
+    	mkdir(dir.c_str(),S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+
+	ofstream file, ux, uy, nx, ny;
+
+	dummy = dir;
+	ux.open(dummy.append("/Ux.dat").c_str(),ios::out);
+	dummy = dir;
+	uy.open(dummy.append("/Uy.dat").c_str(),ios::out);
+	dummy = dir;
+	nx.open(dummy.append("/nx.dat").c_str(),ios::out);
+	dummy = dir;
+	ny.open(dummy.append("/ny.dat").c_str(),ios::out);
+	dummy = dir;
+	file.open(dummy.append("/rho.dat").c_str(),ios::out);
 
 	for(int j=1;j<Ny+1;j++){
-		file_r<<j<<"\t";
+
 		for(int i=1;i<Nx+1;i++){
 			file<<lattice->latpoint[(Nx+2)*j + i].rho<<"\t";
-			file_r<<lattice->latpoint[(Nx+2)*j + i].u[0]<<"\t";
+			ux<<lattice->latpoint[(Nx+2)*j + i].u[0]<<"\t";
+			uy<<lattice->latpoint[(Nx+2)*j + i].u[1]<<"\t";
+			nx<<i<<"\t";
+			ny<<j<<"\t";
 		}
 		file<<endl;
-		file_r<<endl;
+		ux<<endl;
+		uy<<endl;
+		nx<<endl;
+		ny<<endl;
 	}
 
 	file.close();
-	file_r.close();
+	ux.close();
+	uy.close();
+	nx.close();
+	ny.close();
 return;
 }

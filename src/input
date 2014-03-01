@@ -20,5 +20,5 @@ vel 0.1 0.0
 omega 1.25
 
 # Number of iterations
-iter 100000
+iter 50000
 

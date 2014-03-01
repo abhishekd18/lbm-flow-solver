@@ -22,6 +22,7 @@ class latticePoint
 	double* f_buf;
 	double  rho;
 	double* u;
+	int     P;
 	double  x;
 	double  y;
 

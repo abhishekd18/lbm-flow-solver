@@ -20,6 +20,8 @@ class lbmSolver
 	void Collision(const int Nx, const int Ny);
 	void SourceTerm(const int Nx, const int Ny);
 	void BoundaryCondition(const int Nx, const int Ny);
+	void PorosityFunction(const int Nx, const int Ny);
+	void ApplyPorousBC(const int Nx, const int Ny);
 	void Streaming(const int Nx, const int Ny);
 	void ExtractVel(const int Nx, const int Ny);
 

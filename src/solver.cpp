@@ -19,7 +19,7 @@ void lbmSolver::solveFlow(lbmLattice* argLattice, input* argInput){
 	int Ny = inputData->getNy();	
 
 	/// Generate porous structure based on given porosity function
-	//PorosityFunction(Nx, Ny);
+	PorosityFunction(Nx, Ny);
 
 	/// Loop through number of iterations
 	for(int i=0;i<inputData->getNIter();i++){
@@ -40,7 +40,7 @@ void lbmSolver::solveFlow(lbmLattice* argLattice, input* argInput){
 		BoundaryCondition(Nx, Ny);
 
 		/// Apply Porous Boundary condition
-		//ApplyPorousBC(Nx, Ny);
+		ApplyPorousBC(Nx, Ny);
 
 		/// Streaming operator
 		Streaming(Nx, Ny);

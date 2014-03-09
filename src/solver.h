@@ -23,7 +23,7 @@ class lbmSolver
 	void PorosityFunction(const int Nx, const int Ny);
 	void ApplyPorousBC(const int Nx, const int Ny);
 	void Streaming(const int Nx, const int Ny);
-	void ExtractVel(const int Nx, const int Ny);
+	void postProcess(const int Nx, const int Ny);
 
     protected:
 

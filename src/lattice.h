@@ -23,8 +23,6 @@ class latticePoint
 	double  rho;
 	double* u;
 	int     P;
-	double  x;
-	double  y;
 
 	/// Default constructor
 	latticePoint(){

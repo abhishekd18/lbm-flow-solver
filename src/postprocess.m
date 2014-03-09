@@ -32,17 +32,16 @@ close(f);
 % Plot vectors
 f=figure(1);
 set(f, 'Position', [0 0 1000 1000]);
+quiverc(nx, ny, Ux, Uy, 2);
+hold on;
 plot(X,Y,'black','linewidth',2);
 axis([1 Nx 1 Ny]);
 axis equal;
 title('Velocity Vectors');
 xlabel('Nx');
 ylabel('Ny');
-hold on;
-quiverc(nx, ny, Ux, Uy, 2);
 saveas(f,'vectors.png','png');
 close(f);
 
 % Streamlines
 streamline(Ux,Uy,startx',starty);
-

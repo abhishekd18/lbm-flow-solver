@@ -5,10 +5,10 @@ title 2D_Channel
 wdir ./
 
 # Number of interior lattice points in x-direction
-Nx 10
+Nx 70
 
 # Number of interior lattice points in y-direction
-Ny 20
+Ny 70
 
 # Density of fluid
 rho 1
@@ -20,5 +20,5 @@ vel 0.1 0.0
 omega 1.25
 
 # Number of iterations
-iter 50000
+iter 200000
 
